@@ -16,3 +16,13 @@ from .protocol_pl import (
     DEFAULT_CONFIG
 )
 
+from .historic_data import (
+    display_historic_pl,
+    display_rewards_trends,
+    display_tvl_trends,
+    display_all_historic,
+    calculate_monthly_pl,
+    calculate_rewards_by_month,
+    calculate_tvl_trends
+)
+

@@ -1,207 +1,130 @@
-# Symbiotic Complete Brand Styling for Hex
+# Symbiotic Revenue Model - Hex Dashboard
 
-Official Symbiotic.fi brand styling for Hex projects, unified across all Symbiotic web properties:
-- 🌐 [symbiotic.fi](https://symbiotic.fi) - Main website
-- 📱 [app.symbiotic.fi](https://app.symbiotic.fi) - Application interface  
-- 📚 [docs.symbiotic.fi](https://docs.symbiotic.fi) - Documentation
-- ✍️ [blog.symbiotic.fi](https://blog.symbiotic.fi) - Blog
+Complete Symbiotic.fi branded dashboard for Hex with data fetching, styling, and P&L calculations.
 
-## Features
-
-- 🎨 **Dark Theme**: True to Symbiotic's brand (#0a0a0a background)
-- 💚 **Symbiotic Green**: Signature #00ff88 accent color
-- 🔤 **Inter Font**: Professional typography
-- 📊 **App-Style Tables**: Matches app.symbiotic.fi interface
-- ✨ **Gradient Headings**: Modern gradient effects
-- 📱 **Fully Responsive**: Works on all devices
-
-## Installation
-
-### In Hex Projects
-
-1. Upload `symbiotic_complete_styling.py` to your Hex project
-2. In Cell 1:
-
-```python
-from symbiotic_complete_styling import (
-    display_markdown, 
-    style_dataframe, 
-    display_section,
-    add_divider,
-    display_metric_card
-)
-```
-
-## Usage
-
-### Display Markdown
-
-```python
-# Dark theme markdown (default)
-display_markdown('Introduction.md')
-```
-
-### Style DataFrames
-
-```python
-import pandas as pd
-
-# Dark theme table (matches app.symbiotic.fi)
-df = pd.read_csv('tvl_data.csv')
-display(style_dataframe(df))
-
-# Light theme option
-display(style_dataframe(df, dark_mode=False))
-```
-
-### Combined Markdown + Data
-
-```python
-df = pd.read_csv('rewards.csv')
-display_section('Analysis.md', df=df, title='Rewards by Network')
-```
-
-### Add Visual Elements
-
-```python
-# Section divider with gradient
-add_divider()
-
-# Metric cards (like app.symbiotic.fi)
-display_metric_card("Total TVL", "$2.5B", "Across all vaults")
-display_metric_card("APR", "12.5%", "Average yield")
-```
-
-## Complete Example
-
-```python
-# Cell 1: Import
-from symbiotic_complete_styling import *
-import pandas as pd
-
-# Cell 2: Introduction
-display_markdown('Introduction.md')
-add_divider()
-
-# Cell 3: Key metrics
-display_metric_card("Total Value Locked", "$2.5B", "Across 50+ networks")
-display_metric_card("Total Rewards", "$125M", "Distributed to stakers")
-
-# Cell 4: Data analysis
-tvl_df = pd.read_csv('tvl_over_time.csv')
-display_section('TVL_Analysis.md', df=tvl_df, title='TVL Over Time')
-
-add_divider()
-
-# Cell 5: More data
-rewards_df = pd.read_csv('rewards_by_network.csv')
-display(style_dataframe(rewards_df))
-```
-
-## Brand Colors
-
-### Primary Colors
-- **Background**: `#0a0a0a` (Black)
-- **Accent**: `#00ff88` (Symbiotic Green)
-- **Text Primary**: `#ffffff` (White)
-- **Text Secondary**: `#b0b0b0` (Light Gray)
-
-### UI Elements
-- **Cards**: `#1a1a1a`
-- **Borders**: `#2a2a2a`
-- **Hover**: `#151515`
-
-## Typography
-
-- **Font Family**: Inter (weights: 300-800)
-- **H1**: 3.5em, 800 weight, gradient effect
-- **H2**: 2.5em, 700 weight
-- **H3**: 1.75em, 600 weight, green accent border
-- **Body**: 1.05em, 400 weight
-
-## Supported Markdown Features
-
-✅ All standard markdown:
-- Headings (H1-H6) with gradient effects
-- Bold, italic, emphasis
-- Links with green accent
-- Lists with green markers
-- Code blocks (dark theme with green highlights)
-- Tables (app-style with gradients)
-- Blockquotes (dark cards)
-- Images with rounded corners
-- Horizontal rules
-
-## API Reference
-
-### `display_markdown(file_path)`
-Display markdown file with Symbiotic dark theme styling.
-
-### `style_dataframe(df, dark_mode=True)`
-Style pandas DataFrame with app.symbiotic.fi table design.
-
-### `display_section(md_file, df=None, title=None, dark_mode=True)`
-Display markdown with optional styled data table.
-
-### `add_divider()`
-Add a green gradient section divider.
-
-### `display_metric_card(title, value, subtitle=None)`
-Display a metric card matching app.symbiotic.fi interface.
-
-## File Structure
+## 📁 Structure
 
 ```
 symbiotic-revenue-model-content/
-├── symbiotic_complete_styling.py  # Complete styling module
-├── Introduction.md                 # Your content
-├── *.csv                          # Your data
-└── README.md                      # This file
+├── content/              # Markdown content for display
+│   └── Introduction.md
+├── styling/              # Hex display styling
+│   ├── symbiotic_styling.py
+│   └── symbiotic_complete_styling.py
+├── scripts/              # Data fetching & calculations
+│   ├── fetch_dune_data.py
+│   └── protocol_pl.py
+├── data/                 # CSV exports from Dune
+│   ├── rewards_total.csv
+│   ├── tvl_over_time.csv
+│   └── ...
+└── README.md
 ```
 
-## Examples from Symbiotic Properties
+## 🚀 Quick Start in Hex
 
-This styling is based on:
-- **Main site gradient headings** from symbiotic.fi
-- **Dark app interface** from app.symbiotic.fi
-- **Documentation clarity** from docs.symbiotic.fi  
-- **Blog readability** from blog.symbiotic.fi
-
-## Dependencies
+### Option 1: Paste Styling Directly (Recommended)
 
 ```python
-markdown>=3.3.0
-pandas>=1.3.0
-IPython>=7.0.0
+# Cell 1: Styling
+from IPython.display import HTML, display
+import pandas as pd
+import requests
+import markdown
+
+def display_markdown(path):
+    url = "https://raw.githubusercontent.com/Lianefiligrane56/symbiotic-revenue-model-content/main/" + path
+    htm = markdown.markdown(requests.get(url).text, extensions=['tables'])
+    css = "<style>.s{font-family:Inter;background:#0a0a0a;color:#fff;padding:32px;border-radius:12px}.s h1{color:#00ff88}.s p{color:#b0b0b0}.s a{color:#059669}.s table{background:#1a1a1a;width:100%}.s th{background:#0a0a0a;color:#fff;padding:12px;border-bottom:1px solid #00ff88}.s td{padding:12px;color:#b0b0b0;border-bottom:1px solid #2a2a2a}</style>"
+    display(HTML(css + "<div class='s'>" + htm + "</div>"))
+
+def style_df(df):
+    return df.style.set_table_styles([
+        {'selector':'th','props':[('background','#0a0a0a'),('color','#fff'),('padding','12px')]},
+        {'selector':'td','props':[('padding','12px'),('color','#b0b0b0'),('background','#1a1a1a')]}
+    ])
+
+def display_metric_card(title, value):
+    h = "<div style='font-family:Inter;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:24px;display:inline-block;margin:8px'>"
+    h += "<div style='color:#707070;font-size:0.85em'>" + str(title) + "</div>"
+    h += "<div style='color:#fff;font-size:2em'>" + str(value) + "</div></div>"
+    display(HTML(h))
+
+print("Done!")
 ```
 
-## Comparison: Old vs New
+### Option 2: Load Data from GitHub
 
-### Old Styling (Light)
-- Light gray background (#f5f5f5)
-- Basic headings
-- Simple tables
+```python
+# Cell 2: Load Data
+import pandas as pd
 
-### New Styling (Complete Brand)
-- True Symbiotic dark theme (#0a0a0a)
-- Gradient headings with brand colors
-- App-style tables with hover effects
-- Green accent throughout (#00ff88)
-- Metric cards like the app
-- Section dividers
+BASE = "https://raw.githubusercontent.com/Lianefiligrane56/symbiotic-revenue-model-content/main/data/"
 
-## License
+df_rewards = pd.read_csv(BASE + "rewards_total.csv")
+df_tvl = pd.read_csv(BASE + "tvl_over_time.csv")
+df_networks = pd.read_csv(BASE + "rewards_by_network.csv")
 
-MIT License
+print(f"✅ Loaded {len(df_rewards)} reward rows")
+```
 
-## Links
+### Option 3: Display Content
 
-- [Symbiotic Main Site](https://symbiotic.fi)
+```python
+# Cell 3: Show Introduction
+display_markdown('content/Introduction.md')
+```
+
+## 📊 P&L Calculation
+
+```python
+# Calculate Protocol P&L
+gross_rewards = df_rewards['amount'].sum()  # Adjust column name
+protocol_fee = 0.10  # 10% protocol take
+protocol_revenue = gross_rewards * protocol_fee
+
+monthly_opex = 474000  # From GPRP financials
+months = 6
+total_opex = monthly_opex * months
+
+net_income = protocol_revenue - total_opex
+net_margin = (net_income / protocol_revenue * 100)
+
+# Display
+display_metric_card("Gross Rewards", f"${gross_rewards/1e6:.2f}M")
+display_metric_card("Protocol Revenue", f"${protocol_revenue/1e6:.2f}M")
+display_metric_card("Net Income", f"${net_income/1e6:.2f}M")
+display_metric_card("Net Margin", f"{net_margin:.1f}%")
+```
+
+## 🎨 Brand Colors
+
+| Color | Hex | Usage |
+|-------|-----|-------|
+| Background | `#0a0a0a` | Dark theme base |
+| Cards | `#1a1a1a` | Card backgrounds |
+| Accent | `#00ff88` | Symbiotic green |
+| Text Primary | `#ffffff` | Headers |
+| Text Secondary | `#b0b0b0` | Body text |
+| Links | `#059669` | Clickable links |
+
+## 📁 Data Files
+
+| File | Description |
+|------|-------------|
+| `rewards_total.csv` | Total rewards over time |
+| `rewards_by_network.csv` | Rewards breakdown by network |
+| `tvl_over_time.csv` | Historical TVL data |
+| `tvl_by_vault.csv` | TVL by vault type |
+| `operator_count.csv` | Operator metrics |
+| `operator_registrations.csv` | Registration history |
+
+## 🔗 Links
+
+- [Symbiotic.fi](https://symbiotic.fi)
 - [Symbiotic App](https://app.symbiotic.fi)
-- [Symbiotic Docs](https://docs.symbiotic.fi)
-- [Symbiotic Blog](https://blog.symbiotic.fi)
-- [Brand Kit](https://symbioticfi.notion.site/Symbiotic-Brand-Kit-3934802041114e82a18e8265435b1b8b)
+- [Dune Dashboard](https://dune.com/symbiotic/symbiotic-rewards)
 
 ---
 
-🟢 Built for Hex.tech | Styled for Symbiotic.fi
+Built for [Hex.tech](https://hex.tech) | Styled for [Symbiotic.fi](https://symbiotic.fi)

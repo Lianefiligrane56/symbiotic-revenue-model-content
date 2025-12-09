@@ -1,3 +1,6 @@
+---
+cssclasses:
+---
 **Resources Used for Data Inputs**  
 _I have also considered the v2 Core Stats Data as they give Insights on Protocol Revenue Drivers_ and have corrected the monthly costs by the difference of the lower operating costs as indicated in the Cash Flow Statement and Profit & Loss Statement of the Supplier Cost Side.
 

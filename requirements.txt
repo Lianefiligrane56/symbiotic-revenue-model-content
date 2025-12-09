@@ -1,0 +1,3 @@
+markdown>=3.3.0
+pandas>=1.3.0
+IPython>=7.0.0

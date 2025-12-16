@@ -1,0 +1,270 @@
+name: Publish Obsidian to Web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install markdown-it highlight.js
+
+      - name: Convert Markdown to HTML
+        run: |
+          mkdir -p _site
+          
+          # Create beautiful HTML template
+          cat > convert.js << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const MarkdownIt = require('markdown-it');
+          
+          const md = new MarkdownIt({
+            html: true,
+            linkify: true,
+            typographer: true
+          });
+          
+          const template = (title, content) => `<!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${title} | Symbiotic Revenue Model</title>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+            <style>
+              :root {
+                --bg: #0a0a0f;
+                --surface: #12121a;
+                --border: #1e1e2e;
+                --text: #e4e4ed;
+                --text-muted: #8888a0;
+                --accent: #7c5cff;
+                --accent-glow: rgba(124, 92, 255, 0.3);
+              }
+              
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              
+              body {
+                font-family: 'Space Grotesk', sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                line-height: 1.75;
+                min-height: 100vh;
+              }
+              
+              .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 4rem 2rem;
+              }
+              
+              header {
+                margin-bottom: 3rem;
+                padding-bottom: 2rem;
+                border-bottom: 1px solid var(--border);
+              }
+              
+              h1 {
+                font-size: 2.5rem;
+                font-weight: 700;
+                background: linear-gradient(135deg, #7c5cff 0%, #ff6b9d 50%, #ffa64d 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 0.5rem;
+              }
+              
+              .meta {
+                color: var(--text-muted);
+                font-size: 0.9rem;
+              }
+              
+              article h2 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--accent);
+                margin: 2.5rem 0 1rem;
+                padding-bottom: 0.5rem;
+                border-bottom: 1px solid var(--border);
+              }
+              
+              article h3 {
+                font-size: 1.2rem;
+                font-weight: 500;
+                margin: 2rem 0 0.75rem;
+              }
+              
+              article p { margin-bottom: 1rem; }
+              
+              article a {
+                color: var(--accent);
+                text-decoration: none;
+                border-bottom: 1px solid transparent;
+                transition: border-color 0.2s;
+              }
+              
+              article a:hover {
+                border-bottom-color: var(--accent);
+              }
+              
+              article ul, article ol {
+                margin: 1rem 0 1rem 1.5rem;
+              }
+              
+              article li { margin-bottom: 0.5rem; }
+              
+              article table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.5rem 0;
+                font-size: 0.9rem;
+                background: var(--surface);
+                border-radius: 8px;
+                overflow: hidden;
+              }
+              
+              article th, article td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid var(--border);
+              }
+              
+              article th {
+                background: var(--bg);
+                font-weight: 600;
+                color: var(--accent);
+              }
+              
+              article code {
+                background: var(--surface);
+                padding: 0.2rem 0.5rem;
+                border-radius: 4px;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.85em;
+              }
+              
+              article pre {
+                background: var(--surface);
+                padding: 1.5rem;
+                border-radius: 8px;
+                overflow-x: auto;
+                margin: 1.5rem 0;
+                border: 1px solid var(--border);
+              }
+              
+              article blockquote {
+                border-left: 3px solid var(--accent);
+                padding-left: 1.5rem;
+                margin: 1.5rem 0;
+                color: var(--text-muted);
+                font-style: italic;
+              }
+              
+              footer {
+                margin-top: 4rem;
+                padding-top: 2rem;
+                border-top: 1px solid var(--border);
+                color: var(--text-muted);
+                font-size: 0.85rem;
+                text-align: center;
+              }
+              
+              .nav {
+                margin-bottom: 2rem;
+              }
+              
+              .nav a {
+                color: var(--text-muted);
+                text-decoration: none;
+                font-size: 0.9rem;
+              }
+              
+              .nav a:hover { color: var(--accent); }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <nav class="nav">
+                <a href="index.html">← Back to Index</a>
+              </nav>
+              <header>
+                <h1>${title}</h1>
+                <p class="meta">Symbiotic Revenue Model · Romina Bungert</p>
+              </header>
+              <article>
+                ${content}
+              </article>
+              <footer>
+                <p>Published from Obsidian via GitHub Pages</p>
+              </footer>
+            </div>
+          </body>
+          </html>`;
+          
+          // Process content folder
+          const contentDir = './content';
+          const files = fs.readdirSync(contentDir).filter(f => f.endsWith('.md'));
+          const posts = [];
+          
+          files.forEach(file => {
+            const content = fs.readFileSync(path.join(contentDir, file), 'utf8');
+            const title = file.replace('.md', '').replace(/^\d+\.?\d*\s*/, '');
+            const html = md.render(content);
+            const slug = file.replace('.md', '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            
+            fs.writeFileSync(\`_site/\${slug}.html\`, template(title, html));
+            posts.push({ title, slug, file });
+            console.log(\`✅ Converted: \${file} → \${slug}.html\`);
+          });
+          
+          // Generate index
+          const indexContent = \`
+            <h2>Contents</h2>
+            <ul class="posts">
+              \${posts.map(p => \`<li><a href="\${p.slug}.html">\${p.title}</a></li>\`).join('\\n')}
+            </ul>
+          \`;
+          fs.writeFileSync('_site/index.html', template('Index', indexContent));
+          console.log('✅ Generated index.html');
+          EOF
+          
+          node convert.js
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

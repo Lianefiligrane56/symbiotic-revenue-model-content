@@ -1,0 +1,57 @@
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install markdown-it
+      - name: Build Site
+        run: |
+          mkdir -p _site
+          cat > build.js << 'EOF'
+          const fs=require('fs'),path=require('path'),md=require('markdown-it')({html:true,linkify:true});
+          const css=`<style>:root{--bg:#0a0a0f;--surface:#12121a;--border:#1e1e2e;--text:#e4e4ed;--muted:#8888a0;--accent:#7c5cff}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Space Grotesk',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.75;padding:2rem}.container{max-width:800px;margin:0 auto}.badge{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:.4rem .8rem;font-size:.8rem;color:var(--muted);margin-bottom:1.5rem}.badge span{color:var(--accent)}h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,#7c5cff,#ff6b9d,#ffa64d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}h2{color:var(--accent);font-size:1.3rem;margin:2rem 0 1rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}h3{font-size:1.1rem;margin:1.5rem 0 .75rem}p{margin-bottom:1rem}a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}ul,ol{margin:1rem 0 1rem 1.5rem}li{margin-bottom:.5rem}table{width:100%;border-collapse:collapse;margin:1.5rem 0;background:var(--surface);border-radius:8px;overflow:hidden}th,td{padding:.75rem;text-align:left;border-bottom:1px solid var(--border)}th{background:var(--bg);color:var(--accent)}.nav{margin-bottom:1.5rem}.nav a{color:var(--muted);font-size:.9rem}.meta{color:var(--muted);font-size:.9rem;margin-bottom:2rem}footer{margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);color:var(--muted);text-align:center;font-size:.8rem}.posts{list-style:none;padding:0}.posts li{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:.75rem;transition:all .2s}.posts li:hover{border-color:var(--accent);transform:translateY(-2px)}.posts a{display:block;padding:1rem 1.25rem;color:var(--text);font-weight:500}</style><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">`;
+          const tpl=(t,c,nav='')=>`<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${t} | Symbiotic Revenue Model</title>${css}</head><body><div class="container">${nav}<div class="badge">🌐 <span>lianefiligrane.eth</span></div><h1>${t}</h1><p class="meta">By Romina Bungert</p>${c}<footer>Auto-synced from Obsidian</footer></div></body></html>`;
+          const findMd=(dir)=>{let files=[];try{fs.readdirSync(dir).forEach(f=>{const p=path.join(dir,f);if(fs.statSync(p).isDirectory())files=files.concat(findMd(p));else if(f.endsWith('.md')&&!f.startsWith('README'))files.push(p);})}catch(e){}return files;};
+          const mdFiles=[...findMd('./content'),...findMd('.').filter(f=>!f.includes('node_modules')&&!f.includes('_site'))];
+          const posts=[];
+          mdFiles.forEach(f=>{
+            const raw=fs.readFileSync(f,'utf8');
+            const name=path.basename(f,'.md');
+            const title=name.replace(/^\d+\.?\d*\s*/,'').replace(/-/g,' ')||'Introduction';
+            const slug=name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+            const html=md.render(raw);
+            fs.writeFileSync(`_site/${slug}.html`,tpl(title,html,'<nav class="nav"><a href="index.html">← Back</a></nav>'));
+            posts.push({title,slug,name});
+            console.log('✅',name);
+          });
+          const list=posts.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<li><a href="${p.slug}.html">${p.title}</a></li>`).join('');
+          fs.writeFileSync('_site/index.html',tpl('Symbiotic Revenue Model',`<h2>Contents</h2><ul class="posts">${list}</ul>`));
+          console.log('✅ index.html');
+          EOF
+          node build.js
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
